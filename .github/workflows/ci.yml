@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Deterministic evals (mock model) · Python ${{ matrix.python }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12", "3.13"]
+    env:
+      # No GPU or Ollama in CI: the model and judge are replaced by a deterministic mock.
+      LLM_EVAL_BACKEND: mock
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Unit tests + eval suite (mock backend)
+        run: pytest --junitxml=reports/junit.xml
+
+      - name: Eval run and quality gates (mock backend)
+        run: llm-eval run --backend mock --tag "ci-${GITHUB_SHA::7}"
+
+      - name: Gates must catch a faulty model
+        run: |
+          if llm-eval run --backend mock --mock-behavior faulty --tag faulty-control; then
+            echo "::error::Quality gates passed for a deliberately faulty model"
+            exit 1
+          fi
+          echo "Gates correctly rejected the faulty model."
+
+      - name: Comparison report
+        if: always()
+        run: |
+          llm-eval report runs/*ci-*.json runs/*faulty-control*.json || true
+          if [ -f reports/report.md ]; then cat reports/report.md >> "$GITHUB_STEP_SUMMARY"; fi
+
+      - name: Upload report and run files
+        if: always() && matrix.python == '3.12'
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-report
+          path: |
+            reports/
+            runs/*.json
+          if-no-files-found: ignore

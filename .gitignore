@@ -13,3 +13,5 @@ reports/*.html
 reports/*.md
 !runs/.gitkeep
 !reports/.gitkeep
+
+reports/*.xml
