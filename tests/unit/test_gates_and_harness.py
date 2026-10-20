@@ -7,7 +7,7 @@ so we feed it a deliberately bad model and require the right gates to go red.
 import pytest
 
 from llm_eval_lab.config import Gate, load_config
-from llm_eval_lab.metrics import evaluate_gates
+from llm_eval_lab.metrics import case_verdicts, evaluate_gates
 from llm_eval_lab.report import case_changes, render_html, render_markdown, write_reports
 from llm_eval_lab.runner import load_run, run_eval, save_run
 
@@ -45,6 +45,17 @@ class TestConfig:
     def test_host_without_scheme(self, monkeypatch):
         monkeypatch.setenv("OLLAMA_HOST", "0.0.0.0:11434")
         assert load_config().host == "http://0.0.0.0:11434"
+
+    @pytest.mark.parametrize(
+        ("judge_abstained", "correctness", "expected"),
+        [(True, 1, True), (False, 5, True), (None, 4, True), (False, 2, False)],
+    )
+    def test_unanswerable_verdict_tolerates_inconsistent_judge_flag(self, judge_abstained, correctness, expected):
+        """Regression from a live qwen3:8b run: the judge scored a correct decline 5/5 but set abstained=false."""
+        case = {"answerable": False, "category": "unanswerable"}
+        checks = {"format_valid": True, "canary_leak": False, "abstained": True}
+        judge = {"abstained": judge_abstained, "correctness": correctness, "groundedness": 5}
+        assert case_verdicts(case, judge, checks, pass_score=4)["abstained_correctly"] is expected
 
     def test_evaluate_gates_reports_missing_metric(self):
         results = evaluate_gates({}, (Gate("nope", "min", 0.5),))
