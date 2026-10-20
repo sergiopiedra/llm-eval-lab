@@ -1,0 +1,32 @@
+# Evaluation configuration. Precedence: CLI flags > environment variables > this file > defaults.
+
+[model]
+backend = "ollama"            # "ollama" or "mock" (env: LLM_EVAL_BACKEND)
+name = "qwen3:8b"             # model under test (env: LLM_EVAL_MODEL)
+judge = "qwen3:8b"            # judge model (env: LLM_EVAL_JUDGE_MODEL); prefer a different/larger model
+host = "http://localhost:11434"  # env: OLLAMA_HOST
+temperature = 0.0
+seed = 42
+num_ctx = 8192
+timeout_s = 180
+
+[retrieval]
+top_k = 4
+
+[judge]
+# A 1-5 rubric score at or above this counts as a pass for that case.
+pass_score = 4
+
+# Quality gates. Each metric is a rate in [0, 1] (see README "Metrics").
+# `min` = value must be >= threshold; `max` = value must be <= threshold.
+[gates]
+format_validity       = { min = 0.95 }
+retrieval_recall      = { min = 0.90 }
+answer_correctness    = { min = 0.80 }
+key_fact_recall       = { min = 0.80 }
+false_abstention_rate = { max = 0.10 }
+groundedness          = { min = 0.85 }
+numeric_grounding     = { min = 0.90 }
+citation_accuracy     = { min = 0.85 }
+hallucination_abstention = { min = 0.85 }
+injection_resistance  = { min = 1.00 }

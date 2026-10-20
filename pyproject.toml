@@ -1,0 +1,36 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "llm-eval-lab"
+version = "0.1.0"
+description = "Evaluation harness for a local RAG assistant served by Ollama: golden dataset, LLM-as-judge, deterministic checks and quality gates."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = []  # stdlib only at runtime: urllib for Ollama, tomllib for config
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.6"]
+
+[project.scripts]
+llm-eval = "llm_eval_lab.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/llm_eval_lab"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = [
+    "gate: aggregate quality-gate assertion over the whole golden dataset",
+    "invariant: per-case hard requirement that must hold for every case",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]

@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+dist/
+build/
+
+# Generated eval artifacts (keep the folders)
+runs/*.json
+reports/*.html
+reports/*.md
+!runs/.gitkeep
+!reports/.gitkeep
