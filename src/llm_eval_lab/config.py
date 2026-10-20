@@ -51,6 +51,7 @@ class EvalConfig:
     timeout_s: float = 180.0
     top_k: int = 4
     judge_pass_score: int = 4
+    min_calibration_agreement: float = 0.85
     gates: tuple[Gate, ...] = field(default_factory=tuple)
 
     def with_overrides(self, **overrides) -> EvalConfig:
@@ -78,6 +79,7 @@ def load_config(path: Path | str | None = None, **overrides) -> EvalConfig:
         "timeout_s": model.get("timeout_s"),
         "top_k": raw.get("retrieval", {}).get("top_k"),
         "judge_pass_score": raw.get("judge", {}).get("pass_score"),
+        "min_calibration_agreement": raw.get("judge", {}).get("min_calibration_agreement"),
     }
     for key, env in ENV_VARS.items():
         if os.environ.get(env):

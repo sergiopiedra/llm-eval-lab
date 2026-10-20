@@ -5,15 +5,18 @@ from __future__ import annotations
 import re
 
 _THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
-_THOUSANDS_RE = re.compile(r"(?<=\d)[, ](?=\d{3}\b)")
-_DASHES_RE = re.compile(r"[-‐-―]")
+_THOUSANDS_RE = re.compile("(?<=\\d)[,\u202f](?=\\d{3}\\b)")  # 10,000 / 10\u202f000 -> 10000
+_DASHES_RE = re.compile("[-\u2010-\u2015]")  # hyphen, non-breaking hyphen, en/em dashes
 _MARKUP_RE = re.compile(r"[*_`]")
 _NUMBER_RE = re.compile(r"\d+(?:\.\d+)?")
 _TOKEN_RE = re.compile(r"[a-z0-9]+")
 
 STOPWORDS = frozenset(
-    """a an and are as at be by can do does for from has have how i in is it its of on or
-    the their there this to was what when where which who will with you your""".split()
+    {
+        "a", "an", "and", "are", "as", "at", "be", "by", "can", "do", "does", "for", "from", "has",
+        "have", "how", "i", "in", "is", "it", "its", "of", "on", "or", "the", "their", "there",
+        "this", "to", "was", "what", "when", "where", "which", "who", "will", "with", "you", "your",
+    }
 )
 
 

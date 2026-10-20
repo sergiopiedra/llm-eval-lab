@@ -16,6 +16,8 @@ top_k = 4
 [judge]
 # A 1-5 rubric score at or above this counts as a pass for that case.
 pass_score = 4
+# Minimum agreement between the judge and human labels in data/judge_calibration.jsonl.
+min_calibration_agreement = 0.85
 
 # Quality gates. Each metric is a rate in [0, 1] (see README "Metrics").
 # `min` = value must be >= threshold; `max` = value must be <= threshold.
